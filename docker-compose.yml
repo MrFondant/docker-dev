@@ -23,11 +23,11 @@ services:
       - ./apache/sites:/usr/local/apache2/conf/sites:ro
       - ${DOCUMENTROOT}:/var/www/html:delegated
     links:
-      - php56-fpm
-      - php70-fpm
-      - php71-fpm
+#      - php56-fpm
+#      - php70-fpm
+#      - php71-fpm
       - php72-fpm
-      - php73-fpm
+#      - php73-fpm
       - php74-fpm
       - php80-fpm
     env_file:
@@ -62,25 +62,25 @@ services:
   #     lde-network:
 
   # Mailhog ---------------------------------------------------
-  mailhog:
-    container_name: mailhog
-    hostname: mailhog
-    restart: ${DOCKER_RESTART}
-    image: mailhog/mailhog
-    ports:
-      - "1025:1025"
-      - "8025:8025"
-    networks:
-      lde-network:
-
-  # Memcached ---------------------------------------------------
-  memcached:
-    container_name: memcached
-    hostname: memcached
-    restart: ${DOCKER_RESTART}
-    image: "memcached:1-alpine"
-    networks:
-      lde-network:
+#  mailhog:
+#    container_name: mailhog
+#    hostname: mailhog
+#    restart: ${DOCKER_RESTART}
+#    image: mailhog/mailhog
+#    ports:
+#      - "1025:1025"
+#      - "8025:8025"
+#    networks:
+#      lde-network:
+#
+#  # Memcached ---------------------------------------------------
+#  memcached:
+#    container_name: memcached
+#    hostname: memcached
+#    restart: ${DOCKER_RESTART}
+#    image: "memcached:1-alpine"
+#    networks:
+#      lde-network:
 
   # MySQL ---------------------------------------------------
   mysql:
@@ -103,55 +103,55 @@ services:
       lde-network:
 
   # PHP 5.6 ---------------------------------------------------
-  php56-fpm:
-    container_name: php56
-    hostname: php56
-    build:
-      context: ./php
-      dockerfile: ./56/Dockerfile
-      args:
-        - EXTRA_CMDS=${EXTRA_CMDS_PHP56}
-    restart: ${DOCKER_RESTART}
-    volumes:
-      - ${DOCUMENTROOT}:/var/www/html:delegated
-    env_file:
-      - .env
-    networks:
-      lde-network:
+#  php56-fpm:
+#    container_name: php56
+#    hostname: php56
+#    build:
+#      context: ./php
+#      dockerfile: ./56/Dockerfile
+#      args:
+#        - EXTRA_CMDS=${EXTRA_CMDS_PHP56}
+#    restart: ${DOCKER_RESTART}
+#    volumes:
+#      - ${DOCUMENTROOT}:/var/www/html:delegated
+#    env_file:
+#      - .env
+#    networks:
+#      lde-network:
 
-  # PHP 7.0 ---------------------------------------------------
-  php70-fpm:
-    container_name: php70
-    hostname: php70
-    build:
-      context: ./php
-      dockerfile: ./70/Dockerfile
-      args:
-        - EXTRA_CMDS=${EXTRA_CMDS_PHP70}
-    restart: ${DOCKER_RESTART}
-    volumes:
-      - ${DOCUMENTROOT}:/var/www/html:delegated
-    env_file:
-      - .env
-    networks:
-      lde-network:
-
-  # PHP 7.1 ---------------------------------------------------
-  php71-fpm:
-    container_name: php71
-    hostname: php71
-    build:
-      context: ./php
-      dockerfile: ./71/Dockerfile
-      args:
-        - EXTRA_CMDS=${EXTRA_CMDS_PHP71}
-    restart: ${DOCKER_RESTART}
-    volumes:
-      - ${DOCUMENTROOT}:/var/www/html:delegated
-    env_file:
-      - .env
-    networks:
-      lde-network:
+#  # PHP 7.0 ---------------------------------------------------
+#  php70-fpm:
+#    container_name: php70
+#    hostname: php70
+#    build:
+#      context: ./php
+#      dockerfile: ./70/Dockerfile
+#      args:
+#        - EXTRA_CMDS=${EXTRA_CMDS_PHP70}
+#    restart: ${DOCKER_RESTART}
+#    volumes:
+#      - ${DOCUMENTROOT}:/var/www/html:delegated
+#    env_file:
+#      - .env
+#    networks:
+#      lde-network:
+#
+#  # PHP 7.1 ---------------------------------------------------
+#  php71-fpm:
+#    container_name: php71
+#    hostname: php71
+#    build:
+#      context: ./php
+#      dockerfile: ./71/Dockerfile
+#      args:
+#        - EXTRA_CMDS=${EXTRA_CMDS_PHP71}
+#    restart: ${DOCKER_RESTART}
+#    volumes:
+#      - ${DOCUMENTROOT}:/var/www/html:delegated
+#    env_file:
+#      - .env
+#    networks:
+#      lde-network:
 
   # PHP 7.2 ---------------------------------------------------
   php72-fpm:
@@ -170,22 +170,22 @@ services:
     networks:
       lde-network:
 
-  # PHP 7.3 ---------------------------------------------------
-  php73-fpm:
-    container_name: php73
-    hostname: php73
-    build:
-      context: ./php
-      dockerfile: ./73/Dockerfile
-      args:
-        - EXTRA_CMDS=${EXTRA_CMDS_PHP73}
-    restart: ${DOCKER_RESTART}
-    volumes:
-      - ${DOCUMENTROOT}:/var/www/html:delegated
-    env_file:
-      - .env
-    networks:
-      lde-network:
+#  # PHP 7.3 ---------------------------------------------------
+#  php73-fpm:
+#    container_name: php73
+#    hostname: php73
+#    build:
+#      context: ./php
+#      dockerfile: ./73/Dockerfile
+#      args:
+#        - EXTRA_CMDS=${EXTRA_CMDS_PHP73}
+#    restart: ${DOCKER_RESTART}
+#    volumes:
+#      - ${DOCUMENTROOT}:/var/www/html:delegated
+#    env_file:
+#      - .env
+#    networks:
+#      lde-network:
 
   # PHP 7.4 ---------------------------------------------------
   php74-fpm:
@@ -225,12 +225,12 @@ services:
       lde-network:
 
   # Redis ---------------------------------------------------
-  redis:
-    container_name: redis
-    hostname: redis
-    restart: ${DOCKER_RESTART}
-    image: "redis:6-alpine"
-    ports:
-      - "6379:6379"
-    networks:
-      lde-network:
+#  redis:
+#    container_name: redis
+#    hostname: redis
+#    restart: ${DOCKER_RESTART}
+#    image: "redis:6-alpine"
+#    ports:
+#      - "6379:6379"
+#    networks:
+#      lde-network:
