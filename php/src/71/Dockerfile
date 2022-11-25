@@ -6,37 +6,39 @@ LABEL maintainer.name="Pivotal Agency" \
 ENV PATH /usr/local/go/bin:/root/.composer/vendor/bin:$PATH
 
 RUN apt update && apt install -y --no-install-recommends \
-        cron \
-        git \
-        gnupg \
-        iputils-ping \
-        less \
-        libfreetype6-dev \
-        libicu-dev \
-        libjpeg62-turbo-dev \
-        libmcrypt-dev \
-        libmemcached-dev \
-        libpng-dev \
-        libxml2-dev \
-        libxslt-dev \
-        nano \
-        net-tools \
-        ssh \
-        msmtp \
-        supervisor \
-        unzip \
-        libzip-dev \
-        libz-dev \
-    && yes '' | pecl install -f memcached redis xdebug-2.9.8 \
-    && docker-php-ext-install -j$(nproc) bcmath calendar exif intl mcrypt mysqli opcache pdo_mysql soap xsl zip \
-    && docker-php-ext-enable mcrypt memcached redis xdebug \
-    && mv /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini.DISABLE \
-    && apt clean \
-    && rm -rf /var/lib/apt/lists/*
+    cron \
+    git \
+    gnupg \
+    iputils-ping \
+    less \
+    libfreetype6-dev \
+    libicu-dev \
+    libjpeg62-turbo-dev \
+    libmcrypt-dev \
+    libmemcached-dev \
+    libpng-dev \
+    libwebp-dev \
+    libxml2-dev \
+    libxslt-dev \
+    nano \
+    net-tools \
+    ssh \
+    msmtp \
+    sudo \
+    supervisor \
+    unzip \
+    libzip-dev \
+    libz-dev \
+  && yes '' | pecl install -f memcached redis xdebug-2.9.8 \
+  && docker-php-ext-install -j$(nproc) bcmath calendar exif intl mcrypt mysqli opcache pdo_mysql soap xsl zip \
+  && docker-php-ext-enable mcrypt memcached redis xdebug \
+  && mv /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini.DISABLE \
+  && apt clean \
+  && rm -rf /var/lib/apt/lists/*
 
 # Configure GD Library
-RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
-&& docker-php-ext-install -j$(nproc) gd
+RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ --with-webp-dir=/usr/include/ \
+  && docker-php-ext-install -j$(nproc) gd
 
 # Install Ioncube
 RUN cd /tmp \
@@ -59,22 +61,15 @@ RUN curl -L -o /usr/bin/mhsendmail https://github.com/mailhog/mhsendmail/release
 RUN touch /root/custom_crontab \
   && /usr/bin/crontab -u www-data /root/custom_crontab
 
-# Aliases
-RUN echo "alias artisan='php artisan'" >> ~/.bashrc \
-  && echo "alias magento='php bin/magento'" >> ~/.bashrc
-
 # Update site's directory permissions
 RUN chown -R www-data /var/www/
-
-# Cleanup
-RUN apt clean \
-  && rm -rf /var/lib/apt/lists/*
 
 # Custom PHP.ini Config
 COPY ./conf/custom.ini /usr/local/etc/php/conf.d/zza-custom.ini
 
 # PHP-FPM and CRON supervisord config
 COPY ./conf/supervisord.conf /etc/supervisor/supervisord.conf
+RUN touch /etc/supervisor/supervisord.pid
 
 ENTRYPOINT []
 CMD ["/usr/bin/supervisord"]

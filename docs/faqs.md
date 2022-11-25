@@ -21,8 +21,8 @@ sudo nano /etc/hosts
 Each version of PHP can have it's own CRON's.
 
 1. Simply create a file called `custom_crontab` in the PHP directory of your choice (eg. `/php/74/custom_crontab`). Add your CRON's to this script.
-1. Rebuild that PHP container: `docker-compose build php74-fpm`
-1. And start it up: `docker-compose up -d`
+1. Rebuild that PHP container: `docker compose build php74-fpm`
+1. And start it up: `docker compose up -d`
 
 Your CRON entries should look something like this:
 
@@ -52,25 +52,32 @@ We have a (wildcard) DNS redirect setup at `*.lde.pvtl.io` which points to the a
 
 Alternatively, you can manually define where your host is (i.e. what is the hosts IP?). In our case, the IP is that of the `apache` container.
 
-1. `docker exec -it php74-fpm bash` - SSH into the container where you're running `yarn watch` from
-1. `nano /etc/hosts` - Edit the hosts file
-    - `192.168.103.1 <THIS SITE URL eg. wp.pub.localhost>` - Add the current site's URL, pointing to the `apache` container
-    - You can find the apache containers IP with `ping -c 1 apache | awk -F '[()]' '{print $2}' | head -n 1`
+1. `docker exec -it php80-fpm bash` - SSH into the PHP container where you're running `yarn watch` from
+1. Find the `apache` containers IP address with `ping -c 1 apache | awk -F '[()]' '{print $2}' | head -n 1`
+1. `nano /etc/hosts` - Edit the hosts file, and add `<Apache IP address> <The destination site hostname>` on a new line. eg:
+  - `192.168.103.100 wp.pub.localhost`
+
+---
+
+## CURL requests from an LDE site to another LDE site
+
+For instances where you'd like to make a CURL request (or a server-side request) from a site hosted in your LDE, to another site hosted in your LDE (or even to itself), your environment needs to be configured to know where to look.
+
+We need to simply add a host file record of the site we're requesting, pointing to our `apache` container.
+
+1. `docker exec -it php80-fpm bash` - SSH into the PHP container that's running the site
+1. Find the `apache` containers IP address with `ping -c 1 apache | awk -F '[()]' '{print $2}' | head -n 1`
+1. `nano /etc/hosts` - Edit the hosts file, and add `<Apache IP address> <The destination site hostname>` on a new line. eg:
+  - `192.168.103.100 wp.pub.localhost`
+
 
 ---
 
 ## How do I use HTTPS/SSL for my local containers?
 
-We have a HTTPS container available, that proxies traffic over https (:443) (with a self signed certificate) to/from your localhost port 80 addresses.
+HTTPS (port 443) is enabled by default, however Apache is using a self-signed certficate so your browser may require you to enable a feature flag:
 
-By default this container is commented out (as it's not used regularly by everyone). To enable it:
-
-- Add the container - Uncomment the `https` container in `/docker-compose.yml`
-- Rebuild and restart - `docker-compose build --pull --no-cache https && docker-compose up -d`
-
-Note that Chrome/Edge may require you to enable a feature flag, to access the site with an insecure (self signed) certificate:
-
-- `edge://flags` or `chrome://flags`
+- `edge://flags` or `chrome://flags` or `brave://flags`...
 - Enable: `Allow invalid certificates for resources loaded from localhost.`
 
 ---
@@ -82,9 +89,9 @@ By default, Blackfire is commented out (as it's not used regularly by everyone).
 *1. Update your environment*
 
 - Update the environment variables (`BLACKFIRE_CLIENT_ID` etc) in `/.env`
-- Add the container - Uncomment the `blackfire` container in `/docker-compose.yml`
-- Add the PHP module - Uncomment the `Blackfire PHP Profiler...` block in `/php/shared.sh`
-- Rebuild and restart - `docker-compose down && docker-compose build --pull --no-cache && docker-compose up -d` (this will take a while)
+- Add `opt/blackfire.yml` to the `COMPOSE_FILE` list in your .env file (using ":" as list separators). This enables the Blackfire agent container.
+- Uncomment the `Install Blackfire` lines in `php/xx/Dockerfile` (where "xx" is the version of PHP you're enabling Blackfire for). This enables the Blackfire extension for PHP.
+- Rebuild and restart - `docker compose down && docker compose build --pull --no-cache && docker compose up -d` (this will take a while)
 
 *2. Profile*
 
@@ -96,7 +103,7 @@ By default, Blackfire is commented out (as it's not used regularly by everyone).
 
 ## Mapping a Custom Hostname to a local site
 
-Let's say you want `phpinfo.com` to map to a local site. It's as easy as adding a new conf file to `apache/sites` then rebuilding (`docker-compose build apache`) and starting (`docker-compose up -d`). The file would looking something like this:
+Let's say you want `phpinfo.com` to map to a local site. It's as easy as adding a new conf file to `apache/sites` then rebuilding (`docker compose build apache`) and starting (`docker compose up -d`). The file would looking something like this:
 
 ```
 DocumentRoot /var/www/html
@@ -116,7 +123,7 @@ ServerAdmin tech@pvtl.io
 </VirtualHost>
 ```
 
-_Note that apache will load the conf files in alphabetical order. Because our zzzlocalhost.conf has a "catch all", any of our custom conf files, must be named alphabetically before zzzlocalhost.conf (that's why we prefixed the name with zzz)_
+_Note that apache will load the conf files in alphabetical order. Because our localhost.conf has a "catch all", any of our custom conf files, must be named alphabetically before localhost.conf_
 
 ---
 
@@ -125,7 +132,7 @@ _Note that apache will load the conf files in alphabetical order. Because our zz
 If data already exists in your MySQL data store (eg. you've started the MySQL container in the past), simply changing the `.env` `MYSQL_ROOT_PASSWORD` will not change the password. Instead, you need to follow the following steps:
 
 - Update `MYSQL_ROOT_PASSWORD` in `.env`, to your new password
-- Build, start and exec into your MySQL container: `docker-compose exec mysql bash`
+- Build, start and exec into your MySQL container: `docker compose exec mysql bash`
 - Login to MySQL: `mysql -u root -p`
 - Execute the following:
 
@@ -144,18 +151,39 @@ In some instances a build may fail due to a `Container Name already in use` erro
 
 ---
 
-## Dev-In command
+## Adding custom PHP configuration
 
-A handy command group to exec into your PHP containers, switch to the "www-data" user and then change directory to your current working directory. Run this command group from your project directory.
+Simply add a `/php/conf/custom.ini` file and rebuild `docker compose up -d --build`.
+This will take effect in all of your PHP containers.
 
-```bash
-args="cd /var/www/html/${PWD##*/}; su www-data -s /bin/bash" && cd ~/<projects-directory>/docker-dev && docker-compose exec <php-container-name> bash -c "$args"
+---
+
+## Using Redis as a session handler
+
+Did you know that PHP sessions will block concurrent requests from the same user, until the first request is finished? You can improve your session save handler performance by switching to Redis.
+
+1. Add the Redis service - i.e. add `opt/redis.yml` to `COMPOSE_FILE` in `.env`
+2. Add a `/php/conf/custom.ini` with
+
+```
+[PHP]
+session.save_handler = redis
+session.save_path = "tcp://redis:6379"
 ```
 
-Additionally, you could save this command group to a script file (.sh), and add an alias to your ~/.bashrc file to execute the script
+3. Rebuild `docker compose up -d --build`
 
-```bash
-alias devin="sh ~/path/to/script/file/<script-file>.sh"
-```
+---
 
-This allows you to run "devin" from your project folder to execute the command group
+## How do I change the 'default' PHP container?
+
+Let's say that you primarily use PHP 7.4, and want all websites to use PHP 7.4 (instead of the latest version of PHP) for URLs like `<directory-name>.localhost` and `<directory-name>.pub.localhost`:
+
+1. Ensure that the PHP74 image is included in your `/.env`
+    - i.e. ensure that `opt/php74` is included in `COMPOSE_FILE`
+1. Cut (copy and remove) the `ServerAlias *.pub.*` line from `/apache/sites/pub.localhost/php<LATEST_VERSION>.conf`
+    - Paste that line into `/apache/sites/pub.localhost/php74.conf` (after the first `ServerAlias ..` line)
+1. Cut (copy and remove) the `ServerAlias *.*` line from `/apache/sites/localhost/php<LATEST_VERSION>.conf`
+    - - Paste that line into `/apache/sites/localhost/php74.conf` (after the first `ServerAlias ..` line)
+1. Rebuild apache `docker compose build apache`
+1. Bring it back up `docker compose up -d`
