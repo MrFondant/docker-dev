@@ -29,52 +29,6 @@ services:
       lde-network:
         ipv4_address: 192.168.103.100
 
-  # Blackfire ---------------------------------------------------
-  # blackfire:
-  #   container_name: blackfire
-  #   hostname: blackfire
-  #   restart: ${DOCKER_RESTART}
-  #   image: blackfire/blackfire
-  #   env_file:
-  #     - .env
-  #   networks:
-  #     lde-network:
-
-  # HTTPS ---------------------------------------------------
-  # https:
-  #   container_name: https
-  #   hostname: https
-  #   build: ./https
-  #   ports:
-  #     - "443:443"
-  #   restart: ${DOCKER_RESTART}
-  #   environment:
-  #     - HOST_IP=192.168.103.100
-  #     - PORT=80
-  #   networks:
-  #     lde-network:
-
-  # Mailhog ---------------------------------------------------
-#  mailhog:
-#    container_name: mailhog
-#    hostname: mailhog
-#    restart: ${DOCKER_RESTART}
-#    image: mailhog/mailhog
-#    ports:
-#      - "1025:1025"
-#      - "8025:8025"
-#    networks:
-#      lde-network:
-#
-#  # Memcached ---------------------------------------------------
-#  memcached:
-#    container_name: memcached
-#    hostname: memcached
-#    restart: ${DOCKER_RESTART}
-#    image: "memcached:1-alpine"
-#    networks:
-#      lde-network:
-
   # MySQL ---------------------------------------------------
   mysql:
     container_name: mysql
@@ -95,15 +49,15 @@ services:
     networks:
       lde-network:
 
-  # PHP 8.1 ---------------------------------------------------
-  php81-fpm:
-    container_name: php81
-    hostname: php81
+  # PHP 8.2 ---------------------------------------------------
+  php82-fpm:
+    container_name: php82
+    hostname: php82
     build:
       context: ./php
-      dockerfile: ./81/Dockerfile
+      dockerfile: ./82/Dockerfile
       args:
-        - EXTRA_CMDS=${EXTRA_CMDS_PHP81}
+        - EXTRA_CMDS=${EXTRA_CMDS_PHP82}
         - CUSTOM_USER_NAME=${CUSTOM_USER_NAME}
         - CUSTOM_UID=${CUSTOM_UID}
         - CUSTOM_GID=${CUSTOM_GID}
@@ -113,56 +67,6 @@ services:
     restart: ${DOCKER_RESTART}
     volumes:
       - ${DOCUMENTROOT}:/var/www/html:delegated
-    env_file:
-      - .env
     networks:
       lde-network:
     user: ${CUSTOM_UID}:${CUSTOM_GID}
-
-  # PHP 7.4 ---------------------------------------------------
-  php74-fpm:
-    container_name: php74
-    hostname: php74
-    build:
-      context: ./php
-      dockerfile: ./74/Dockerfile
-      args:
-        - EXTRA_CMDS=${EXTRA_CMDS_PHP74}
-    restart: ${DOCKER_RESTART}
-    ports:
-      - "3000:3000" # Browser Sync
-      - "3001:3001" # Browser Sync UI
-    volumes:
-      - ${DOCUMENTROOT}:/var/www/html:delegated
-    env_file:
-      - .env
-    networks:
-      lde-network:
-
-  # PHP 8.0 ---------------------------------------------------
-  php80-fpm:
-    container_name: php80
-    hostname: php80
-    build:
-      context: ./php
-      dockerfile: ./80/Dockerfile
-      args:
-        - EXTRA_CMDS=${EXTRA_CMDS_PHP80}
-    restart: ${DOCKER_RESTART}
-    volumes:
-      - ${DOCUMENTROOT}:/var/www/html:delegated
-    env_file:
-      - .env
-    networks:
-      lde-network:
-
-  # Redis ---------------------------------------------------
-  redis:
-    container_name: redis
-    hostname: redis
-    restart: ${DOCKER_RESTART}
-    image: "redis:6-alpine"
-    ports:
-      - "6379:6379"
-    networks:
-      lde-network:
